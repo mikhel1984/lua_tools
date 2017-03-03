@@ -52,7 +52,7 @@ ln.suffix = {}
 
 -- get number of lines in file (except empty)
 function ln.filelines(fname)
-   local s = string.match(fname, '.*%.(.-)$')
+   local s = string.match(fname, '.*%.(.-)$') or ''   
    s = string.lower(s)
    -- file suffix is not in list of types
    if not ln.defined[s] then return end
