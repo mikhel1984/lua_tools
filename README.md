@@ -1,2 +1,2 @@
-# code_tools
-Tools for code analizy, writen in Lua
+# lua_tools
+Some programs writen in Lua
