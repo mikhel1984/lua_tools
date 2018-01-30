@@ -1,2 +1,2 @@
 # lua_tools
-Some programs writen in Lua
+Some programs written in Lua
