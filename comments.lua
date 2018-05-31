@@ -1,23 +1,26 @@
 #!/usr/local/bin/lua
 
--- Extract comments from file (or list of files in current directory)
+--[[		comments.lua 
 
--- Usage:
---   lua comments.lua <filename> - for concrete file
---   lua comments.lua            - for all files
+Extract comments from file (or list of files in current directory
+
+Usage:
+  * lua comments.lua <filename> - for concrete file
+  * lua comments.lua            - for all files
+
+2017, Stanislav Mikhel ]]
 
 local LANG      = "cpp"   -- file type (from table 'types')
 local NOLISENCE = true    -- don't show license if it is founded
 
--- comment style for different file types
+-- comment styles for different file types
 local types = {
    cpp={single='//', multi={'/%*','%*/'}},
    python={single='#', multi={'"""','"""'}},
    lua={single='%-%-', multi={'%-%-%[%[','%]%]%-%-'}},
 }
 
-local com = {}
-
+local com = {}            -- define namespace
 com.accumulator = {}
 com.multiline = false
 com.mfirst = nil

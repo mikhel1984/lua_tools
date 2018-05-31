@@ -1,7 +1,14 @@
-------------------------------------------------------------------
--- Convert text to Esperanto version by replacing               --
--- combinations such like 'cx' or 'Cx' to ĉ and Ĉ respectively. --
-------------------------------------------------------------------
+#!/usr/local/bin/lua
+
+--[[		eo.lua
+
+Convert text to Esperanto version by replacing combinations 
+such like 'cx' or 'Cx' to ĉ and Ĉ respectively. 
+
+Usage:
+   lua eo.lua file_to_convert
+
+2017, Stanislav Mikhel ]]
 
 -- check arguments
 if not arg[1] then

@@ -1,4 +1,10 @@
--- Simple lisp interpretator
+#!/usr/local/bin/lua
+
+--[[		lisp.lua
+
+Simple Lisp interpretator in Lua. Interacts with user in 'read-and-evaluate' form. Inspired by www.norvig.com/lispy.html
+
+2017, Stanislav Mikhel ]]
 
 local lisp = {}
 

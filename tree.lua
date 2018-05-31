@@ -1,17 +1,44 @@
+--[[		tree.lua 
 
---[[ Tree-like graph representation in style of Linux 'pstree'
+Tree-like graph representation in style of Linux 'pstree'.
+
+For using this module you should call function 
  
- Usage:
+        tree.print(T, f_leaf_name, f_leaf_iterator [,filename])
  
- For using this module you should call function 
- 
- tree.print(T, f_leaf_name, f_leaf_iterator [,filename])
- 
- where T - tree for printing,
-       f_leaf_name - function f(t) that defines name for current leaf
-       f_leaf_iterator - generator f(t) that returns function for iterations throw childs of current leaf
-       filename - optional argument, if it is defined, result will be saved into file
-]]
+where T - tree for printing,
+      f_leaf_name - function f(t) that defines name for current leaf
+      f_leaf_iterator - generator f(t) that returns function for iterations throw childs of current leaf
+      filename - optional argument, defines file to save the result
+
+~~~~~~~ Example ~~~~~~~
+
+local test = {  -- tree graph
+   {
+      {{name='bb'},{name='lk'}, name='sd'},
+      {{name='te'},{name='on'}, name='gb'},
+      {name='fe'},
+      name='we'
+   },
+   name='tr'
+}
+
+T = require('tree')
+
+T.print(-- graph 
+           test, 
+           -- get name
+           function (t) return t.name end,
+	   -- use iterator
+	   function (t) 
+	      local i = 0
+	      return function() i=i+1; return t[i] end
+	   end,
+	   -- save to file (optional)
+           'test.txt'
+       )
+
+2017, Stanislav Mikhel ]]
 
 -- elements of tree branches
 local br = {v='│',h='─',ur='└',r='├',d='┬'}
@@ -27,7 +54,7 @@ tree.hor_d = br.h .. br.d  .. br.h
 tree.hor_l = br.h .. br.h  .. br.h
 
 -- tree developer
-function tree.child(this_v, prev_str, new_str)
+tree.child = function (this_v, prev_str, new_str)
    local name = tree.f_name(this_v)             -- node
    prev_str = prev_str .. name                  -- current string
    local iterator = tree.f_iterator(this_v)
@@ -52,7 +79,7 @@ function tree.child(this_v, prev_str, new_str)
 end
 
 -- show tree
-function tree.print(T, f_leaf_name, f_leaf_iterator, filename)
+tree.print = function (T, f_leaf_name, f_leaf_iterator, filename)
    assert(f_leaf_name, "Expected funcion for leaf name definition")
    assert(f_leaf_iterator, "Expected generator for creating leaf iterators")
    tree.f_name = f_leaf_name
@@ -70,30 +97,4 @@ function tree.print(T, f_leaf_name, f_leaf_iterator, filename)
    end
 end
 
--- example
---[[
-local test = {  -- tree graph
-   {
-      {{name='bb'},{name='lk'}, name='sd'},
-      {{name='te'},{name='on'}, name='gb'},
-      {name='fe'},
-      name='we'
-   },
-   name='tr'
-}
-
---local test2 = {{name='de'},name='ff'}
-
-tree.print(-- graph 
-           test, 
-           -- get name
-           function (t) return t.name end,
-	   -- use iterator
-	   function (t) 
-	      local i = 0
-	      return function() i=i+1; return t[i] end
-	   end,
-	   -- save to file (optional)
-           'test.txt'
-          )
-]]
+return tree

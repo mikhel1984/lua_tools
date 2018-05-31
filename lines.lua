@@ -1,12 +1,17 @@
 #!/usr/bin/lua
 
--- Count line numbers in code. Include all subdirectories and languages that is known.
+--[[		lines.lua
 
--- Usage:
---    lua lines.lua directory - analize given directory
---    lua lines.lua           - analize current directory
+Count line numbers in code. Include all subdirectories and languages that are predefined. Work in Linux by default.
 
--- list of languages
+Usage:
+  * lua lines.lua directory - analize given directory
+  * lua lines.lua           - analize current directory
+
+2017, Stanislav Mikhel ]]
+
+-- list of languages 
+-- (add name and extention if need)
 local types =
 {
    {name='Python', code={'py','pyw'}},
@@ -18,13 +23,12 @@ local types =
    {name='Bash', code={'sh'}},
    {name='Win bat', code={'bat'}},
    {name='XML', code={'xml'}},
-   --{name='HTML', code={'html','htm'}},
+   {name='HTML', code={'html','htm'}},
    {name='make', code={'/makefile', '/Makefile'}},
 }
-
+-- constants
 local FILE, DIR = 'file', 'dir'
-
-local ln = {}
+local ln = {}  -- namespace
 
 -- detect the type of item (Linux)
 function ln.filetype(str)
