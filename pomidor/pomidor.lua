@@ -1,12 +1,15 @@
 #!/usr/local/bin/lua
---[[
-   Simple tool for time management. 
-   Allows to create a list of task and use timer for work and rest.
-]]
+
+--[[		pomidor.lua
+
+Simple tool for time management. 
+Allows to create a list of task and use timer for work and rest.
+
+2018, Stanislav Mikhel ]]
 
 -- time settings
-WORK_TIME = 25                             -- minutes
-RELAX_TIME = 5                             -- minutes
+WORK_TIME = 25     -- minutes
+RELAX_TIME = 5     -- minutes
 
 -- GUI
 require 'iuplua' 
