@@ -1,4 +1,6 @@
---[[ Simple Lua imitation of database with SQL requests
+--[[		toysql.lua 
+
+Simple Lua imitation of database with SQL requests
 
 Limitations:
   * one table
