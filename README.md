@@ -1,6 +1,7 @@
 # lua_tools
 Some programs written in **Lua**:
 
+* _gtp2tab.lua_ - convert gtp files to text
 * _comments.lua_ - extract information from code comments
 * _eo.lua_ - replace characters like _cx_ or _Hx_ with Esperanto symbols
 * _lines.lua_ - count number of code lines
