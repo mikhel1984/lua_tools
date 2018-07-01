@@ -6,7 +6,7 @@ Usage:
    lua gtp2tab.lua file         -- get information about the file
    lua gtp2tab.lua file track   -- save current track as a text file
 
-2018, Stanislav Mikhel]]
+2018, Stanislav Mikhel ]]
 
 if not arg[1] then print(
 [[Usage:
