@@ -6,6 +6,7 @@ Similarities:
 * separated nodes communicate with each other via master 
 * nodes can send and receive messages 
 * node structure is similar to the original ROS implementation
+
 Differences:
 * no network communication
 * only publishers and subscribers, no services and other features
