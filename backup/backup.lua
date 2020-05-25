@@ -23,11 +23,14 @@ require "diff"       -- file comparison
 local backup = {}
 -- show commits
 backup.log = function (fname)
-  for line in io.lines(fname..EXT) do
-    if string.find(line, "^BKP NEW ") then
-      print(string.sub(line, 9))
+  local v = pcall(function() 
+    for line in io.lines(fname..EXT) do
+      if string.find(line, "^BKP NEW ") then
+        print(string.sub(line, 9))
+      end
     end
-  end
+  end)
+  if not v then print("Empty") end 
 end
 -- make single-linked list
 backup._addString = function (s, parent)
@@ -58,7 +61,7 @@ backup._make = function (fname, last)
   for line in f:lines() do
     if #line > 8 and string.find(line, "^BKP ") then 
       -- execute command
-      local cmd, v1, v2 = string.match(line, "BKP (%u%u%u) (%d+) : (.*)")
+      local cmd, v1, v2 = string.match(line, "^BKP (%u%u%u) (%d+) : (.*)")
       v1 = tonumber(v1)
       if cmd == "NEW" then                            -- commit
         if v1-1 == last then break 
