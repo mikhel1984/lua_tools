@@ -7,14 +7,14 @@ See "usage" for details.
 2020, Stanislav Mikhel ]]
 
 local usage = [[
-USAGE: ./backup.lua file cmd [option]
+USAGE: ./backup.lua file cmd [option] [branch]
 
   Commands:
-    add [msg] - save changes in file
-    rev [n]   - create n-th revision of the file
-    diff [n]  - comapre file with n-th revision
-    log       - show all commits
-    vs file2  - compare two files
+    add  [msg] [br] - save changes in file
+    rev  [n]   [br] - create n-th revision of the file
+    diff [n]   [br] - comapre file with n-th revision
+    log        [br] - show all commits
+    vs   file2      - compare two files
 ]]
 
 local EXT = ".bkp"   -- output extention
@@ -90,18 +90,6 @@ local function goTo (node, iCur, iGoal)
   return node, iGoal
 end
 
-local backup = {}
--- show commits
-backup.log = function (fname)
-  local v = pcall(function() 
-    for line in io.lines(fname..EXT) do
-      if string.find(line, "^BKP NEW ") then
-        print(string.sub(line, 9))
-      end
-    end
-  end)
-  if not v then print("Empty") end 
-end
 -- list to table
 local function toTbl (ptr)
   local t = {}
@@ -111,9 +99,56 @@ local function toTbl (ptr)
   end
   return t
 end
+-- prepare backup file name
+local function bkpname(fname,br)
+  return fname..(br and ('.'..br) or '')..EXT
+end
+
+-- parse command line arguments
+local argparse = {}
+-- add msg branch | add msg | add
+argparse.add = function ()
+  return bkpname(arg[1],arg[4]), arg[3]
+end
+-- log branch | log
+argparse.log = function ()
+  return bkpname(arg[1],arg[3]), nil
+end
+-- rev n branch | rev n | rev branch | rev
+argparse.rev = function ()
+  if arg[4] then 
+    return bkpname(arg[1],arg[4]), tonumber(arg[3])
+  end
+  local n = tonumber(arg[3]) 
+  if n then
+    return bkpname(arg[1],nil), n
+  else
+    return bkpname(arg[1],arg[3]), nil
+  end
+end
+-- diff n branch | diff n | diff branch | diff
+argparse.diff = argparse.rev
+-- return backup name and parameter
+argparse.get = function ()
+  return argparse[arg[2]]()
+end
+
+local backup = {}
+-- show commits
+backup.log = function ()
+  local fname = argparse.get()
+  local v = pcall(function() 
+    for line in io.lines(fname) do
+      if string.find(line, "^BKP NEW ") then
+        print(string.sub(line, 9))
+      end
+    end
+  end)
+  if not v then print("Empty") end 
+end
 -- prepare file version based on bkp file
 backup._make = function (fname, last) 
-  local f = io.open(fname..EXT, 'r') 
+  local f = io.open(fname, 'r') 
   if f == nil then return {}, 0 end
   -- continue if the file found
   local begin = {}
@@ -148,15 +183,16 @@ backup._make = function (fname, last)
   return toTbl(begin.child), id
 end
 -- "commit"
-backup.add = function (fname, msg)
+backup.add = function ()
+  local fname, msg = argparse.get()
   local saved, id = backup._make(fname) 
-  local new = diff.read(fname)
+  local new = diff.read(arg[1])
   local common = diff.lcs(saved, new) 
   if #saved == #new and #new == #common-1 then
     return print("Nothing to add")
   end
   -- save commit
-  local f = io.open(fname..EXT, "a")
+  local f = io.open(fname, "a")
   f:write(string.format("BKP NEW %d : %s\n", id+1, msg or ''))
   -- remove old lines
   if #saved > #common-1 then
@@ -180,23 +216,24 @@ backup.add = function (fname, msg)
   print(string.format("Save [%d] %s", id+1, msg or ''))
 end
 -- restore the desired file version
-backup.rev = function (fname, ver)
-  ver = ver and tonumber(ver)    -- string to number
+backup.rev = function ()
+  local fname, ver = argparse.get()
   local saved, id = backup._make(fname, ver) 
   if ver and id ~= ver then return print("No revision", ver) end
   -- save result
-  io.open(fname, "w"):write(table.concat(saved, '\n'))
+  io.open(arg[1], "w"):write(table.concat(saved, '\n'))
 end
 -- difference between the file and some revision
-backup.diff = function (fname, ver)
-  ver = ver and tonumber(ver)    -- string to number
+backup.diff = function ()
+  local fname, ver = argparse.get()
   local saved, id = backup._make(fname, ver) 
   if ver and id ~= ver then return print("No revision", ver) end
   -- compare
-  diff.print(saved, diff.read(fname))
+  diff.print(saved, diff.read(arg[1]))
 end
 -- comare two files 
-backup.vs = function (fname1, fname2)
+backup.vs = function ()
+  local fname1, fname2 = arg[1], arg[3]
   if not fname2 then return backup.wtf('?!') end
   diff.print(diff.read(fname1), diff.read(fname2))
 end
@@ -206,7 +243,8 @@ setmetatable(backup, {__index=function()
   return function() end
 end})
 
+
 --============== Call ===================
 
-backup[arg[2]](arg[1], arg[3])
+backup[arg[2]]()
 
