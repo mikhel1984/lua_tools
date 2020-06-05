@@ -11,4 +11,4 @@ Some programs written in **Lua**:
 * _toysql.lua_ - simple **SQL** imitation
 * _tree.lua_ - text representation of tree-like data structure
 * _loss_ - small **ROS** emulation
-* _backup_ - simple version control system
+* _backup.lua_ - local version control system

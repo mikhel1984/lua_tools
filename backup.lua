@@ -14,11 +14,81 @@ USAGE: ./backup.lua file cmd [option]
     rev [n]   - create n-th revision of the file
     diff [n]  - comapre file with n-th revision
     log       - show all commits
+    vs file2  - compare two files
 ]]
 
 local EXT = ".bkp"   -- output extention
 
-require "diff"       -- file comparison
+-- file comparison
+local diff = {}
+-- Convert text file into the table of strings
+diff.read = function (fname)
+  local t = {}
+  for line in io.lines(fname) do t[#t+1] = line end
+  return t
+end
+-- Find longest common "substrings"
+diff.lcs = function (a, b)
+  local S = {}
+  local na, nb = #a, #b
+  -- prepare initial zeros
+  for i = 1,na do S[i] = {0,0,[0]=0} end
+  S[0] = setmetatable({}, {__index=function() return 0 end}) 
+  -- fill table
+  for i = 1, na do
+    local Si,Sii, ai = S[i],S[i-1],a[i]
+    for j = 1, nb do
+      Si[j] = (ai==b[j]) and (Sii[j-1]+1) 
+                          or math.max(Si[j-1], Sii[j]) 
+    end
+  end
+  local N = S[na][nb] -- total number of common strings
+  -- prepare table
+  local common = {}
+  for i = 1,N do common[i] = 0 end 
+  -- collect
+  while N > 0 do
+    if S[na][nb] == S[na-1][nb] then 
+      na = na - 1
+    elseif S[na][nb] == S[na][nb-1] then 
+      nb = nb - 1
+    else
+      --assert (a[na] == b[nb])
+      common[N] = {na, nb} 
+      na, nb, N = na-1, nb-1, N-1
+    end
+  end
+  -- for further processing
+  common[0] = {0, 0}
+  common[#common+1] = {#a+1, #b+1}
+  return common 
+end
+-- show difference
+diff.print = function (a, b)
+  local common = diff.lcs(a, b)
+  local tbl, sign = {a, b}, {"-- ", "++ "}
+  for n = 1, #common do
+    for k = 1,2 do
+      local n1, n2 = common[n-1][k]+1, common[n][k]-1
+      if n2 >= n1 then
+        io.write("@@ ", n1, "..", n2, "\n")
+        for i = n1, n2 do io.write(sign[k], tbl[k][i], "\n") end
+      end
+    end
+  end
+end
+
+-- make single-linked list
+local function addString (s, parent)
+  parent.child = {s, child=parent.child}
+  return parent.child
+end
+
+-- move forward along the list
+local function goTo (node, iCur, iGoal)
+  for i = iCur+1, iGoal do node = node.child end
+  return node, iGoal
+end
 
 local backup = {}
 -- show commits
@@ -32,18 +102,8 @@ backup.log = function (fname)
   end)
   if not v then print("Empty") end 
 end
--- make single-linked list
-backup._addString = function (s, parent)
-  parent.child = {s, child=parent.child}
-  return parent.child
-end
--- move forward along the list
-backup._goTo = function (node, iCur, iGoal)
-  for i = iCur+1, iGoal do node = node.child end
-  return node, iGoal
-end
 -- list to table
-backup._tbl = function (ptr)
+local function toTbl (ptr)
   local t = {}
   while ptr do
     t[#t+1] = ptr[1]
@@ -72,20 +132,20 @@ backup._make = function (fname, last)
         if del then
           curr, index, del = begin, 0, false          -- reset, change flag
         end
-        curr, index = backup._goTo(curr, index, v1-1)
+        curr, index = goTo(curr, index, v1-1)
       elseif cmd == "REM" then                        -- remove lines
-        curr, index = backup._goTo(curr, index, v1-1)  
-        local curr2, index2 = backup._goTo(curr, index, v1+tonumber(v2))
+        curr, index = goTo(curr, index, v1-1)  
+        local curr2, index2 = goTo(curr, index, v1+tonumber(v2))
         curr.child, index = curr2, index2 - 1         -- update indexation
       end
     else
       -- insert line
-      curr = backup._addString(line, curr)             
+      curr = addString(line, curr)             
       index = index + 1
     end
   end
   f:close()
-  return backup._tbl(begin.child), id
+  return toTbl(begin.child), id
 end
 -- "commit"
 backup.add = function (fname, msg)
@@ -134,6 +194,11 @@ backup.diff = function (fname, ver)
   if ver and id ~= ver then return print("No revision", ver) end
   -- compare
   diff.print(saved, diff.read(fname))
+end
+-- comare two files 
+backup.vs = function (fname1, fname2)
+  if not fname2 then return backup.wtf('?!') end
+  diff.print(diff.read(fname1), diff.read(fname2))
 end
 
 setmetatable(backup, {__index=function() 
