@@ -31,12 +31,12 @@ end
 diff.lcs = function (a, b)
   local an, bn = #a, #b
   -- skip end 
-  while an > 1 and bn > 1 and a[an] == b[bn] do
+  while an > 0 and bn > 0 and a[an] == b[bn] do
     an, bn = an-1, bn-1
   end
   -- skip begin 
   local ab = 1
-  while ab < an and a[ab] == b[ab] do
+  while ab <= an and a[ab] == b[ab] do
     ab = ab + 1
   end
   local S, ab1 = {}, ab-1
@@ -81,6 +81,7 @@ end
 -- show difference
 diff.print = function (a, b)
   local common = diff.lcs(a, b)
+  --for i = 1,#common do print(common[i][1],a[common[i][1]]) end
   local tbl, sign = {a, b}, {"-- ", "++ "}
   for n = 1, #common do
     for k = 1,2 do
