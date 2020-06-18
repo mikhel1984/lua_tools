@@ -29,38 +29,52 @@ diff.read = function (fname)
 end
 -- Find longest common "substrings"
 diff.lcs = function (a, b)
-  local S = {}
-  local na, nb = #a, #b
-  -- prepare initial zeros
-  for i = 1,na do S[i] = {0,0,[0]=0} end
-  S[0] = setmetatable({}, {__index=function() return 0 end}) 
-  -- fill table
-  for i = 1, na do
-    local Si,Sii, ai = S[i],S[i-1],a[i]
-    for j = 1, nb do
-      Si[j] = (ai==b[j]) and (Sii[j-1]+1) 
-                          or math.max(Si[j-1], Sii[j]) 
+  local an, bn, ab = #a, #b, 1  
+  -- skip begin
+  while ab <= an and ab <= bn and a[ab] == b[ab] do
+    ab = ab+1
+  end
+  -- skip end
+  while ab <= an and ab <= bn and a[an] == b[bn] do
+    an, bn = an-1, bn-1
+  end  
+  -- make table
+  local S, ab1 = {}, ab-1
+  S[ab1] = setmetatable({}, {__index=function() return ab1 end}) 
+  for i = ab, an do
+    S[i] = {[ab1]=ab1}
+    local Si,Si1, ai = S[i],S[i-1],a[i]
+    for j = ab, bn do
+      Si[j] = (ai==b[j]) and (Si1[j-1]+1) 
+                          or math.max(Si[j-1], Si1[j]) 
     end
   end
-  local N = S[na][nb] -- total number of common strings
+  local Ncom = S[an][bn]   -- total number of common strings  
   -- prepare table
   local common = {}
-  for i = 1,N do common[i] = 0 end 
+  --for i = 0,N do 
+  for i = 0, (Ncom + #a - an) do
+    common[i] = (i < ab) and {i,i} or 0
+  end   
   -- collect
-  while N > 0 do
-    if S[na][nb] == S[na-1][nb] then 
-      na = na - 1
-    elseif S[na][nb] == S[na][nb-1] then 
-      nb = nb - 1
+  local N = Ncom  
+  while N > ab1 do
+    local Sab = S[an][bn]
+    if Sab == S[an-1][bn] then 
+      an = an - 1
+    elseif Sab == S[an][bn-1] then 
+      bn = bn - 1
     else
-      --assert (a[na] == b[nb])
-      common[N] = {na, nb} 
-      na, nb, N = na-1, nb-1, N-1
+      --assert (a[an] == b[bn])
+      common[N] = {an, bn} 
+      an, bn, N = an-1, bn-1, N-1
     end
   end
-  -- for further processing
-  common[0] = {0, 0}
-  common[#common+1] = {#a+1, #b+1}
+  an, bn = #a+1, #b+1
+  for i = #common+1, Ncom+1, -1 do    
+    common[i] = {an,bn}
+    an, bn = an-1, bn-1
+  end
   return common 
 end
 -- show difference
