@@ -29,49 +29,34 @@ diff.read = function (fname)
 end
 -- Find longest common "substrings"
 diff.lcs = function (a, b)
-  local an, bn = #a, #b
-  -- skip end 
-  while an > 0 and bn > 0 and a[an] == b[bn] do
-    an, bn = an-1, bn-1
-  end
-  -- skip begin 
-  local ab = 1
-  while ab <= an and a[ab] == b[ab] do
-    ab = ab + 1
-  end
-  local S, ab1 = {}, ab-1
-  S[ab1] = setmetatable({}, {__index=function() return ab1 end}) 
+  local S = {}
+  local na, nb = #a, #b
+  -- prepare initial zeros
+  for i = 1,na do S[i] = {0,0,[0]=0} end
+  S[0] = setmetatable({}, {__index=function() return 0 end}) 
   -- fill table
-  for i = ab, an do
-    S[i] = {[ab1]=ab1}
-    local Si,Si1, ai = S[i],S[i-1],a[i]
-    for j = ab, bn do
-      Si[j] = (ai==b[j]) and (Si1[j-1]+1) 
-                          or math.max(Si[j-1], Si1[j]) 
+  for i = 1, na do
+    local Si,Sii, ai = S[i],S[i-1],a[i]
+    for j = 1, nb do
+      Si[j] = (ai==b[j]) and (Sii[j-1]+1) 
+                          or math.max(Si[j-1], Sii[j]) 
     end
   end
-  local Ncom = S[an][bn] -- total number of common strings
-  local N = Ncom + #a - an 
+  local N = S[na][nb] -- total number of common strings
   -- prepare table
   local common = {}
-  for i = 1,N do 
-    common[i] = (i < ab) and {i,i} or 0
-  end 
+  for i = 1,N do common[i] = 0 end 
   -- collect
-  while Ncom >= ab do
-    if S[an][bn] == S[an-1][bn] then 
-      an = an - 1
-    elseif S[an][bn] == S[an][bn-1] then 
-      bn = bn - 1
+  while N > 0 do
+    if S[na][nb] == S[na-1][nb] then 
+      na = na - 1
+    elseif S[na][nb] == S[na][nb-1] then 
+      nb = nb - 1
     else
-      --assert (a[an] == b[bn])
-      common[Ncom] = {an, bn} 
-      an, bn, Ncom = an-1, bn-1, Ncom-1
+      --assert (a[na] == b[nb])
+      common[N] = {na, nb} 
+      na, nb, N = na-1, nb-1, N-1
     end
-  end
-  for i = Ncom+1, N do
-    an, bn = an+1, bn+1
-    common[i] = {an,bn}
   end
   -- for further processing
   common[0] = {0, 0}
