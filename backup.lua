@@ -15,6 +15,7 @@ USAGE: ./backup.lua file cmd [option] [branch]
     diff [n]   [br] - comapre file with n-th revision
     log        [br] - show all commits
     vs   file2      - compare two files
+    base n     [br] - update initial commit
 ]]
 
 local EXT = ".bkp"   -- output extention
@@ -143,6 +144,10 @@ argparse.rev = function ()
 end
 -- diff n branch | diff n | diff branch | diff
 argparse.diff = argparse.rev
+-- base n branch | base n
+argparse.base = function()
+  return bkpname(arg[1],arg[4]), tonumber(arg[3])
+end
 -- return backup name and parameter
 argparse.get = function ()
   return argparse[arg[2]]()
@@ -251,6 +256,34 @@ backup.vs = function ()
   local fname1, fname2 = arg[1], arg[3]
   if not fname2 then return backup.wtf('?!') end
   diff.print(diff.read(fname1), diff.read(fname2))
+end
+-- update initial version
+backup.base = function ()
+  local fname,ver = argparse.get() 
+  local tbl = diff.read(fname) 
+  local ind, comment = 0, '^BKP NEW '..(arg[3] or 'None')
+  for i = 1,#tbl do 
+    if string.find(tbl[i],comment) then 
+      io.write('Delete before "'..string.sub(tbl[i],9)..'"\nContinue (y/n)? ')
+      if 'y' == io.read() then ind = i end
+      break
+    end
+  end
+  if ind == 0 then return end
+  -- save previous changes
+  local f = io.open(fname..".v"..arg[3],"w")
+  for i = 1,ind-1 do f:write(tbl[i],'\n') end
+  f:close() 
+  -- save current version
+  local saved,id = backup._make(fname,ver)
+  f = io.open(fname,'w') 
+  f:write(string.format("BKP NEW %d : Update base\nBKP ADD 1 : %d\n",ver,#saved))
+  for i = 1,#saved do f:write(saved[i],'\n') end
+  -- start from the next commit
+  ind = ind+1
+  while ind <= #tbl and not string.find(tbl[ind],"^BKP NEW ") do ind = ind+1 end 
+  for j = ind,#tbl do f:write(tbl[j],'\n') end 
+  f:close()
 end
 
 setmetatable(backup, {__index=function() 
