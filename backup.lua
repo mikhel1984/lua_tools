@@ -271,7 +271,7 @@ backup.base = function ()
   end
   if ind == 0 then return end
   -- save previous changes
-  local f = io.open(fname..".v"..arg[3],"w")
+  local f = io.open(fname:gsub("bkp$","v"..arg[3]..".bkp"),"w")
   for i = 1,ind-1 do f:write(tbl[i],'\n') end
   f:close() 
   -- save current version
