@@ -208,9 +208,7 @@ backup.add = function ()
   local saved, id = backup._make(fname) 
   local new = diff.read(arg[1])
   local common = diff.lcs(saved, new) 
-  if #saved == #new and #new == #common-1 then
-    return print("Nothing to add")
-  end
+  if #saved == #new and #new == #common-1 then return end
   -- save commit
   local f = io.open(fname, "a")
   f:write(string.format("BKP NEW %d : %s\n", id+1, msg or ''))
