@@ -12,3 +12,4 @@ Some programs written in **Lua**:
 * _tree.lua_ - text representation of tree-like data structure
 * _loss_ - small **ROS** emulation
 * _backup.lua_ - local version control system
+* _chords.lua_ - guitar chords generator
