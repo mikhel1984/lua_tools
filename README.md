@@ -6,10 +6,7 @@ Some programs written in **Lua**:
 * _fb2_ - simple txt to fb2 converter
 * _gtp2tab.lua_ - convert gtp files to text
 * _lines.lua_ - count number of code lines
-* _lisp.lua_ - simple **LISP** interpretator
 * _pomidor_ - time management tool with **IUP** interface
-* _toysql.lua_ - simple **SQL** imitation
 * _tree.lua_ - text representation of tree-like data structure
-* _loss_ - small **ROS** emulation
 * _backup.lua_ - local version control system
 * _chords.lua_ - guitar chords generator
