@@ -8,5 +8,4 @@ Some programs written in **Lua**:
 * _lines.lua_ - count number of code lines
 * _pomidor_ - time management tool with **IUP** interface
 * _tree.lua_ - text representation of tree-like data structure
-* _backup.lua_ - local version control system
 * _chords.lua_ - guitar chords generator
