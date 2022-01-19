@@ -11,18 +11,17 @@ Usage:
 2017, Stanislav Mikhel ]]
 
 -- list of languages 
--- (add name and extention if need)
 local types =
 {
    {name='Python', code={'py','pyw'}},
-   {name='Lua', code={'lua'}},
+   {name='Lua',  code={'lua'}},
    {name='Java', code={'java'}},
-   {name='C++', code={'cpp','h','hpp'}},
-   {name='C', code={'c','h'}},
-   {name='Scheme', code={'scm'}},
+   {name='C#',   code={'cs'}},
+   {name='C++',  code={'cpp','hpp'}},
+   {name='C',    code={'c','h'}},
+   {name='JS',   code={'js'}},
    {name='Bash', code={'sh'}},
-   {name='Win bat', code={'bat'}},
-   {name='XML', code={'xml'}},
+   {name='XML',  code={'xml'}},
    {name='HTML', code={'html','htm'}},
    {name='make', code={'/makefile', '/Makefile'}},
 }
