@@ -7,5 +7,4 @@ Some programs written in **Lua**:
 * _gtp2tab.lua_ - convert gtp files to text
 * _lines.lua_ - count number of code lines
 * _pomidor_ - time management tool with **IUP** interface
-* _tree.lua_ - text representation of tree-like data structure
 * _chords.lua_ - guitar chords generator
