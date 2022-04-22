@@ -9,3 +9,4 @@ Some programs written in **Lua**:
 * _pomidor_ - time management tool with **IUP** interface
 * _chords.lua_ - guitar chords generator
 * _behavior\_trees.lua_ - some components of the behaviour trees
+* _rusdec_ - convert utf8 to win1251 or cp866 and vice versa
