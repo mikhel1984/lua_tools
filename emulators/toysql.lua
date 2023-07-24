@@ -43,6 +43,7 @@ columns.__index = columns
 -- Base class
 local toysql = {}
 toysql.__index = toysql
+
 -- Constructor
 toysql.CREATE_TABLE = function (self,t)
    local o = {}
@@ -50,8 +51,10 @@ toysql.CREATE_TABLE = function (self,t)
    o._cols = t
    return setmetatable(o,self)
 end
+
 -- Wrapper
 toysql.INSERT_INTO = function (_,t) return t end
+
 -- Insert new data row
 toysql.VALUES = function (t,...)
    local val = {...}
@@ -61,10 +64,12 @@ toysql.VALUES = function (t,...)
    end
    t[#t+1] = val
 end
+
 -- Wrapper
 toysql.SELECT = function (self,...)
    return setmetatable({...},self)
 end
+
 -- Create "billet" for the goal table
 toysql.FROM = function (names,t)
    -- select columns
@@ -85,18 +90,21 @@ toysql.FROM = function (names,t)
    end
    return new
 end
+
 -- Sort
 toysql.ORDER_BY = function (t,key)
    local pos = t[key].pose
    table.sort(t, function (a,b) return a[pos] < b[pos] end)
    return t
 end
+
 -- Revert order
 toysql.DESC = function (t)
    local res = toysql:CREATE_TABLE(t._cols)
    for i = #t,1,-1 do res[#res+1] = t[i] end
    return res
 end
+
 -- Index range
 toysql.LIMIT = function (t,a,b)
    if not b then a,b = 1,a end                                  -- correct indeces if need
@@ -104,6 +112,7 @@ toysql.LIMIT = function (t,a,b)
    for i = a,b do res[#res+1] = t[i] end
    return res
 end
+
 -- Table processing based on locigal results
 toysql.WHERE = function (t,logic)
    if t._set then
@@ -132,36 +141,44 @@ toysql.WHERE = function (t,logic)
       return res
    end
 end
+
 -- Wrapper
 toysql.UPDATE = function (_,t) return t end
+
 -- List of pairs column/value to update
 toysql.SET = function (t,...)
    t._set = {...}
    return t
 end
+
 -- Wrapper
 toysql.DELETE_FROM = function (_,t) 
    t._delete = true
    return t 
 end
+
 -- Wrapper
 toysql.ALTER_TABLE = function (_,t) return t end
+
 -- Rename column
 toysql.CHANGE = function (t,old,new)
    local pos = t[old].pose
    t[new] = t[old]; t[old] = nil
    t._cols[pos] = new
 end
+
 -- Print table summary
 toysql.DESCRIBE = function (_,t)
    print('Columns = (' .. table.concat(t._cols,',')..')')
    print('Rows = '..tonumber(#t))
 end
+
 -- Number of rows
 toysql.COUNT = function (self,t)
    t = t or self                       -- for diferent function calls
    return #t
 end
+
 -- Sum of values in first column
 toysql.SUM = function (self,t)
    t = t or self
@@ -169,11 +186,13 @@ toysql.SUM = function (self,t)
    for i = 1,#t do s = s+t[i][1] end   -- only first column
    return s
 end
+
 -- Average value of the first column
 toysql.AVG = function (self,t)
    t = t or self
    return toysql.SUM(t) / #t
 end
+
 -- Minimum value in the first column
 toysql.MIN = function (self,t)
    t = t or self
@@ -183,6 +202,7 @@ toysql.MIN = function (self,t)
    end
    return m
 end
+
 -- Maximum value in the first column
 toysql.MAX = function (self,t)
    t = t or self
@@ -192,6 +212,7 @@ toysql.MAX = function (self,t)
    end
    return m
 end
+
 -- String representation of the table
 toysql.__tostring = function (t)
    local delim = '\t| '
@@ -201,6 +222,7 @@ toysql.__tostring = function (t)
    end
    return table.concat(res,'\n')
 end
+
 --	 Columns methods
 -- Make list of true/false values
 columns._trueList = function (t,col,fn)
@@ -208,34 +230,42 @@ columns._trueList = function (t,col,fn)
    for i,v in ipairs(t) do res[i] = fn(v[col]) end
    return res
 end
+
 -- a == b
 columns.EQ = function (t,val)
    return columns._trueList(t.src, t.pose, function (x) return x == val end)
 end
+
 -- a ~= b
 columns.NE = function (t,val)
    return columns._trueList(t.src, t.pose, function (x) return x ~= val end)
 end
+
 -- a < b
 columns.LT = function (t,val)
    return columns._trueList(t.src, t.pose, function (x) return x < val end)
 end
+
 -- a <= b
 columns.LE = function (t,val)
    return columns._trueList(t.src, t.pose, function (x) return x <= val end)
 end
+
 -- a > b
 columns.GT = function (t,val)
    return columns._trueList(t.src, t.pose, function (x) return x > val end)
 end
+
 -- a >= b
 columns.GE = function (t,val)
    return columns._trueList(t.src, t.pose, function (x) return x >= val end)
 end
+
 -- x >= a and x <= b
 columns.BETWEEN = function (t,v1,v2)
    return columns._trueList(t.src, t.pose, function (x) return x >= v1 and x <= v2 end)
 end
+
 -- x in (a,b,...)
 columns.IN = function (t,...)
    local val = {...}
@@ -247,15 +277,18 @@ columns.IN = function (t,...)
          end
    return columns._trueList(t.src, t.pose, test)
 end
+
 -- Check if value contains given template
 columns.LIKE = function (t,templ)
    return columns._trueList(t.src, t.pose, function (x) return string.find(x,templ) ~= nil end)
 end
+
 -- And method for two logical lists
 columns.AND = function (a,b)
    for i = 1,#a do a[i] = (a[i] and b[i]) end
    return a
 end
+
 -- Or method for two logical lists
 columns.OR = function (a,b)
    for i = 1,#a do a[i] = (a[i] or b[i]) end
