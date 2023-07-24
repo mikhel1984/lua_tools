@@ -1,11 +1,25 @@
+#!/usr/local/bin/lua
 
+--[[            forth.lua
+
+Simple Forth interpreter.
+
+Usage:
+  
+  lua forth.lua 
+  lua forth.lua code.forth
+
+2023, Stanislav Mikhel ]]
+
+-- Data
 local stack = {}   -- parameter stack
 local rstack = {}  -- return stack
-
 local dictionary = {}
 
+-- stack operations
 local push, pop = table.insert, table.remove
 
+-- Transrom string into list of tokens
 local function parse (str)
   str = string.gsub(str, '%s%(%s.-%s%)%s', ' ')  -- remove comments
   local res = {}
@@ -15,6 +29,7 @@ local function parse (str)
   return res
 end
 
+-- Main evaluation loop
 local function eval(cmd, ind, exit)
   if type(cmd) == 'string' then cmd = parse(cmd) end
   while ind <= #cmd do
@@ -29,7 +44,7 @@ local function eval(cmd, ind, exit)
       if type(instruction) == 'function' then
         ind = instruction(cmd, ind) or (ind + 1)
       elseif type(instruction) == 'table' then
-        eval(instruction, ind)
+        eval(instruction, 1)
         ind = ind + 1
       else
         io.write(key, ' is not ')
@@ -40,7 +55,7 @@ local function eval(cmd, ind, exit)
   return ind
 end
 
-
+-- Simplify function definition
 local function apply2 (op)
   return function ()
     local b = pop(stack)
@@ -56,40 +71,36 @@ local function apply1 (op)
   end
 end
 
+-- Arithmetic
 dictionary['+'] = apply2(function (x, y) return x + y end)
-
 dictionary['-'] = apply2(function (x, y) return x - y end)
-
 dictionary['*'] = apply2(function (x, y) return x * y end)
-
 dictionary['/'] = apply2(function (x, y) return math.floor(x + y) end)
-
-dictionary['='] = apply2(function (x, y) return (x == y) and -1 or 0 end)
-
-dictionary['<'] = apply2(function (x, y) return (x < y) and -1 or 0 end)
-
-dictionary['>'] = apply2(function (x, y) return (x > y) and -1 or 0 end)
-
-dictionary['and'] = apply2(function (x, y) return (x ~= 0 and y ~= 0) and -1 or 0 end)
-
-dictionary['or'] = apply2(function (x, y) return (x ~= 0 or y ~= 0) and -1 or 0 end)
-
 dictionary['min'] = apply2(function (x, y) return (x < y) and x or y end)
-
 dictionary['max'] = apply2(function (x, y) return (x > y) and x or y end)
-
-dictionary['0='] = apply1(function (x) return (x == 0) and -1 or 0 end)
-
-dictionary['0<'] = apply1(function (x) return (x > 0) and -1 or 0 end)
-
-dictionary['0>'] = apply1(function (x) return (x < 0) and -1 or 0 end)
-
-dictionary['invert'] = apply1(function (x) return (x == 0) and -1 or 0 end)
-
 dictionary['abs'] = apply1(function (x) return (x < 0) and -x or x end)
-
 dictionary['negate'] = apply1(function (x) return -x end)
 
+dictionary['*/'] = function ()
+  local c = pop(stack)
+  local b = pop(stack)
+  local a = pop(stack)
+  push(stack, math.floor(a*b/c))
+end
+
+
+-- Logic
+dictionary['='] = apply2(function (x, y) return (x == y) and -1 or 0 end)
+dictionary['<'] = apply2(function (x, y) return (x < y) and -1 or 0 end)
+dictionary['>'] = apply2(function (x, y) return (x > y) and -1 or 0 end)
+dictionary['and'] = apply2(function (x, y) return (x ~= 0 and y ~= 0) and -1 or 0 end)
+dictionary['or'] = apply2(function (x, y) return (x ~= 0 or y ~= 0) and -1 or 0 end)
+dictionary['0='] = apply1(function (x) return (x == 0) and -1 or 0 end)
+dictionary['0<'] = apply1(function (x) return (x > 0) and -1 or 0 end)
+dictionary['0>'] = apply1(function (x) return (x < 0) and -1 or 0 end)
+dictionary['invert'] = apply1(function (x) return (x == 0) and -1 or 0 end)
+
+-- Parameter stack
 dictionary['swap'] = function ()
   stack[#stack], stack[#stack-1] = stack[#stack-1], stack[#stack]
 end
@@ -99,16 +110,13 @@ dictionary['rot'] = function ()
 end
 
 dictionary['drop'] = function () pop(stack) end
-
 dictionary['dup'] = function () push(stack, stack[#stack]) end
+dictionary['over'] = function () push(stack, stack[#stack-1]) end
+dictionary['.'] = function () io.write(string.format("%d ", pop(stack))) end
 
 dictionary['?dup'] = function () 
   if stack[#stack] ~= 0 then push(stack, stack[#stack]) end 
 end
-
-dictionary['over'] = function () push(stack, stack[#stack-1]) end
-
-dictionary['.'] = function () io.write(string.format("%d ", pop(stack))) end
 
 dictionary['.s'] = function ()
   io.write(string.format('<%d> ', #stack))
@@ -117,6 +125,7 @@ dictionary['.s'] = function ()
   end
 end
 
+-- Word definition
 dictionary[':'] = function (cmd, pos)
   local n = pos+1
   while n <= #cmd and cmd[n] ~= ';' do n = n + 1 end
@@ -124,6 +133,7 @@ dictionary[':'] = function (cmd, pos)
   return n + 1
 end
 
+-- String
 dictionary['."'] = function (cmd, pos)
   local n = pos+1
   while n <= #cmd and cmd[n] ~= '"' do n = n + 1 end
@@ -131,6 +141,7 @@ dictionary['."'] = function (cmd, pos)
   return n + 1
 end
 
+-- Conditions
 dictionary['if'] = function (cmd, pos)
   local function stop (x) return x=='then' or x=='else' end
   if pop(stack) ~= 0 then 
@@ -151,14 +162,15 @@ dictionary['if'] = function (cmd, pos)
   return pos + 1
 end
 
+-- loop with indexation
 dictionary['do'] = function (cmd, pos)
-  local function stop (x) return x == 'loop' or x =='+loop' or 'leave' end
+  local function stop (x) return x == 'loop' or x =='+loop' or x == 'leave' end
   local first = pop(stack)
   local last = pop(stack)
   local pn = pos + 1
   push(rstack, 0)
   local i = first
-  while i < (last-1) do
+  while i < last do
     rstack[#rstack] = i
     pn = eval(cmd, pos+1, stop)
     local word = string.lower(cmd[pn])
@@ -178,6 +190,7 @@ dictionary['do'] = function (cmd, pos)
   return pn + 1
 end
 
+-- loop with conditions
 dictionary['begin'] = function (cmd, pos)
   local function stop (x) 
     return x == 'until' or x == 'while' or x == 'repeat' or x == 'leave' end
@@ -208,31 +221,36 @@ dictionary['begin'] = function (cmd, pos)
   return pn + 1
 end
 
+-- Return stack
 dictionary['i'] = function () push(stack, rstack[#rstack]) end
-
 dictionary['j'] = function () push(stack, rstack[#rstack-2]) end
+dictionary['>r'] = function () push(rstack, pop(stack)) end
+dictionary['r>'] = function () push(stack, pop(rstack)) end
+dictionary['r@'] = function () push(stack, rstack[#rstack]) end
 
-dictionary['>R'] = function () push(rstack, pop(stack)) end
-
-dictionary['R>'] = function () push(stack, pop(rstack)) end
-
-dictionary['R@'] = function () push(stack, rstack[#rstack]) end
-
-dictionary['*/'] = function ()
-  local c = pop(stack)
-  local b = pop(stack)
-  local a = pop(stack)
-  push(stack, math.floor(a*b/c))
-end
-
+-- Other
 dictionary['cr'] = function () io.write('\n') end
-
+dictionary['emit'] = function () io.write(string.char(pop(stack))) end
 dictionary['quit'] = function () os.exit() end
 
-
-while true do
-  local input = io.read()
-  eval(input, 1)
-  -- processing
-  io.write('ok\n')
+-- Run
+if arg[1] then
+  -- evaluate file
+  local f = io.open(arg[1])
+  if f then
+    local txt = f:read('a')
+    f:close()
+    eval(txt, 1)
+    io.write(' ok\n')
+  else
+    print(arg[1], 'not found')
+  end
+else
+  -- read command line
+  print('Enter the Forth expression, "quit" to exit')
+  while true do
+    local input = io.read()
+    eval(input, 1)
+    io.write(' ok\n')
+  end
 end
