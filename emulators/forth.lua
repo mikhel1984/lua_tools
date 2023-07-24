@@ -1,5 +1,7 @@
 
-local stack = {}
+local stack = {}   -- parameter stack
+local rstack = {}  -- return stack
+
 local dictionary = {}
 
 local push, pop = table.insert, table.remove
@@ -41,9 +43,9 @@ end
 
 local function apply2 (op)
   return function ()
-    local a = pop(stack)
     local b = pop(stack)
-    push(stack, op(b, a))
+    local a = pop(stack)
+    push(stack, op(a, b))
   end
 end
 
@@ -60,7 +62,7 @@ dictionary['-'] = apply2(function (x, y) return x - y end)
 
 dictionary['*'] = apply2(function (x, y) return x * y end)
 
-dictionary['/'] = apply2(function (x, y) return x + y end)
+dictionary['/'] = apply2(function (x, y) return math.floor(x + y) end)
 
 dictionary['='] = apply2(function (x, y) return (x == y) and -1 or 0 end)
 
@@ -68,9 +70,9 @@ dictionary['<'] = apply2(function (x, y) return (x < y) and -1 or 0 end)
 
 dictionary['>'] = apply2(function (x, y) return (x > y) and -1 or 0 end)
 
-dictionary['and'] = apply2(function (x, y) return (x ~= and y ~= 0) and -1 or 0 end)
+dictionary['and'] = apply2(function (x, y) return (x ~= 0 and y ~= 0) and -1 or 0 end)
 
-dictionary['or'] = apply2(function (x, y) return (x ~= or y ~= 0) and -1 or 0 end)
+dictionary['or'] = apply2(function (x, y) return (x ~= 0 or y ~= 0) and -1 or 0 end)
 
 dictionary['min'] = apply2(function (x, y) return (x < y) and x or y end)
 
@@ -149,9 +151,87 @@ dictionary['if'] = function (cmd, pos)
   return pos + 1
 end
 
+dictionary['do'] = function (cmd, pos)
+  local function stop (x) return x == 'loop' or x =='+loop' or 'leave' end
+  local first = pop(stack)
+  local last = pop(stack)
+  local pn = pos + 1
+  push(rstack, 0)
+  local i = first
+  while i < (last-1) do
+    rstack[#rstack] = i
+    pn = eval(cmd, pos+1, stop)
+    local word = string.lower(cmd[pn])
+    if word == '+loop' then
+      i = i + pop(stack)
+    elseif word == 'loop' then
+      i = i + 1
+    else  -- leave
+      repeat 
+        pn = pn + 1
+        local w = string.lower(cmd[pn])
+      until w == 'loop' or w == '+loop'
+      break
+    end
+  end
+  pop(rstack)
+  return pn + 1
+end
+
+dictionary['begin'] = function (cmd, pos)
+  local function stop (x) 
+    return x == 'until' or x == 'while' or x == 'repeat' or x == 'leave' end
+  local pn = pos+1
+  repeat
+    pn = eval(cmd, pos+1, stop)
+    local word = string.lower(cmd[pn])
+    local exitloop = true
+    if word == 'until' then
+      exitloop = (pop(stack) ~= 0)
+    elseif word == 'while' then
+      exitloop = (pop(stack) == 0)
+      if not exitloop then
+        pn = eval(cmd, pn+1, stop)
+      else
+        -- look for end
+        repeat pn = pn + 1
+        until stop(string.lower(cmd[pn]))
+      end
+    elseif word == 'leave' then
+      exitloop = true
+      repeat 
+        pn = pn + 1 
+        local w = string.lower(cmd[pn])
+      until w == 'until' or w == 'repeat'
+    end
+  until exitloop
+  return pn + 1
+end
+
+dictionary['i'] = function () push(stack, rstack[#rstack]) end
+
+dictionary['j'] = function () push(stack, rstack[#rstack-2]) end
+
+dictionary['>R'] = function () push(rstack, pop(stack)) end
+
+dictionary['R>'] = function () push(stack, pop(rstack)) end
+
+dictionary['R@'] = function () push(stack, rstack[#rstack]) end
+
+dictionary['*/'] = function ()
+  local c = pop(stack)
+  local b = pop(stack)
+  local a = pop(stack)
+  push(stack, math.floor(a*b/c))
+end
+
+dictionary['cr'] = function () io.write('\n') end
+
+dictionary['quit'] = function () os.exit() end
+
+
 while true do
   local input = io.read()
-  if input == 'quit' then break end
   eval(input, 1)
   -- processing
   io.write('ok\n')
