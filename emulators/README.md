@@ -1,7 +1,8 @@
 # emulators
 Simple Lua based emulators and interpreters:
 
-* _lisp.lua_ - simple **LISP** interpretator
-* _toysql.lua_ - simple **SQL** imitation
+* _forth.lua_ - **FORTH** interpreter
+* _lisp.lua_ - **LISP** interpretator
+* _toysql.lua_ - **SQL** imitation
 * _loss_ - small **ROS** emulation
 
