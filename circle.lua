@@ -4,6 +4,10 @@
 Print the circle of fifths.
 Usage:
   ./circle [key]
+E.g.
+  ./circle
+  ./circle Am
+  ./circle '###'
 
 2024, Stanislav Mikhel ]]
 
@@ -19,42 +23,46 @@ local min = {
 
 local function ln (...) print(string.format(...)) end
 local function map (n) return (n > 12) and (n - 12) or (n < 1) and (n + 12) or n end
-local function imaj (n) return maj[map(n)] end
-local function imin (n) return min[map(n)] end
+local function smaj (n) return maj[map(n)] end
+local function smin (n) return min[map(n)] end
 
-local n = 1
--- check argument
-local a = arg[1]
-if a then
-  -- major
-  for i, v in ipairs(maj) do
-    if a == v:match('%S+') then
-      n = i
-      break
-    end
-  end
-  -- minor
-  for i, v in ipairs(min) do
-    if a == v:match('%S+') then
-      n = i
-      break
+-- check names
+local function search(x, t) 
+  for i, v in ipairs(t) do
+    if x == v:match('%S+') then
+      return i
     end
   end
 end
+-- check signs
+local function signs(x, s)
+  local i = 0
+  for v in x:gmatch('.') do
+    if v == s then i = i + 1 else break end
+  end
+  if i > 0 then
+    return (s == '#') and map(1+i) or map(1-i)
+  end
+end
+
+local a, n = arg[1], 1
+if a then
+  n = search(a, maj) or search(a, min) or signs(a, '#') or signs(a, 'b') or 1
+end
 
 -- show
-ln('               %s',             imaj(n))
+ln('               %s',             smaj(n))
 ln('      4        1        5')
-ln('        %s    %s    %s',        imaj(n-1), imin(n), imaj(n+1))
-ln('          %s  6    %s',         imin(n-1), imin(n+1))
-ln('  %s       2     3         %s', imaj(n-2), imaj(n+2))
-ln('      %s               %s',     imin(n-2), imin(n+2))
+ln('        %s    %s    %s',        smaj(n-1), smin(n), smaj(n+1))
+ln('          %s  6    %s',         smin(n-1), smin(n+1))
+ln('  %s       2     3         %s', smaj(n-2), smaj(n+2))
+ln('      %s               %s',     smin(n-2), smin(n+2))
 ln('')
-ln('%s %s                   %s %s', imaj(n-3), imin(n-3), imin(n+3), imaj(n+3))
+ln('%s %s                   %s %s', smaj(n-3), smin(n-3), smin(n+3), smaj(n+3))
 ln('')
-ln('      %s               %s',     imin(n-4), imin(n+4))
-ln('  %s                       %s', imaj(n-4), imaj(n+4))
-ln('          %s       %s',         imin(n-5), imin(n+5))
-ln('        %s    %s    %s',        imaj(n-5), imin(n-6), imaj(n+5))
+ln('      %s               %s',     smin(n-4), smin(n+4))
+ln('  %s                       %s', smaj(n-4), smaj(n+4))
+ln('          %s       %s',         smin(n-5), smin(n+5))
+ln('        %s    %s    %s',        smaj(n-5), smin(n-6), smaj(n+5))
 ln('')
-ln('               %s',             imaj(n-6))
+ln('               %s',             smaj(n-6))
