@@ -11,5 +11,6 @@ Some programs written in **Lua**:
 * _gtp2tab.lua_ - convert gtp files to text
 * _lines.lua_ - count number of code lines
 * _chords.lua_ - guitar chords generator
+* _circle.lua_ - show circle of fifths
 * _behavior\_trees.lua_ - some components of the behaviour trees
 * _rusdec_ - convert utf8 to win1251 or cp866 and vice versa
