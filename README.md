@@ -8,7 +8,6 @@ Some programs written in **Lua**:
 
 * _comments.lua_ - extract information from code comments
 * _eo.lua_ - replace characters like _cx_ or _Hx_ with Esperanto symbols
-* _gtp2tab.lua_ - convert gtp files to text
 * _lines.lua_ - count number of code lines
 * _chords.lua_ - guitar chords generator
 * _circle.lua_ - show circle of fifths
