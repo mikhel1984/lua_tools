@@ -40,7 +40,7 @@ file:close()
 if d_next >= 65536 then print('COMPRESSION STOPPED') end
 
 -- save result
-local out_file = io.open(fname..'.lzwl', 'wb')
+local out_file = assert(io.open(fname..'.lzwl', 'wb'))
 for i = 1, #compressed do
   out_file:write(string.pack('>H', compressed[i]))
 end
