@@ -5,6 +5,7 @@ Some programs written in **Lua**:
 * _pomidor_ - time management tool with **IUP** interface
 * _emulators_ - emulate some languages and tools
 * _t2t_ - tree-like table print
+* _compress_ - LZW implementation
 
 * _comments.lua_ - extract information from code comments
 * _eo.lua_ - replace characters like _cx_ or _Hx_ with Esperanto symbols
