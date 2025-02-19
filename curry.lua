@@ -12,14 +12,16 @@ Apply currying to a regular Lua function.
 --  @param tot Total number of the function arguments.
 --  @return found value of a new function.
 local function wrap (fn, args, x, tot)
-  table.insert(args, x)
-  if #args >= tot then
+  local state = {}
+  for i = 1, #args do state[i] = args[i] end
+  state[#state+1] = x
+  if #state >= tot then
     -- evaluate
-    return fn(table.unpack(args))
+    return fn(table.unpack(state))
   else
     -- make new function
     return function (y)
-      return wrap(fn, args, y, tot)
+      return wrap(fn, state, y, tot)
     end
   end
 end
