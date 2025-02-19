@@ -11,7 +11,7 @@ Apply currying to a regular Lua function.
 --  @param args List of arguments.
 --  @param tot Total number of the function arguments.
 --  @return found value of a new function.
-local function wrap (x, fn, args, tot)
+local function wrap (fn, args, x, tot)
   table.insert(args, x)
   if #args >= tot then
     -- evaluate
@@ -19,7 +19,7 @@ local function wrap (x, fn, args, tot)
   else
     -- make new function
     return function (y)
-      return wrap(y, fn, args, tot)
+      return wrap(fn, args, y, tot)
     end
   end
 end
@@ -33,7 +33,7 @@ local function curry (fn, nargs)
   nargs = nargs or debug.getinfo(fn, 'u').nparams
   -- make curried
   return function (x)
-    return wrap(x, fn, {}, nargs)
+    return wrap(fn, {}, x, nargs)
   end
 end
 
