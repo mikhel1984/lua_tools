@@ -54,9 +54,9 @@ local function uncurry (fn)
 end
 
 
+--[[ Example ]]
 if arg[0] == "curry.lua"
 then
---[[ Example ]]
 
 -- Function to test
 local add = function (x, y, z)
