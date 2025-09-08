@@ -6,6 +6,8 @@ Some programs written in **Lua**:
 * _emulators_ - emulate some languages and tools
 * _t2t_ - tree-like table print
 * _compress_ - LZW implementation
+* _curry_ - library for function currying
+* _matching_ - library for list matching
 
 * _comments.lua_ - extract information from code comments
 * _eo.lua_ - replace characters like _cx_ or _Hx_ with Esperanto symbols
