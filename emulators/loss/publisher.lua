@@ -13,5 +13,8 @@ while node:ok() do
   -- for example, publish current time each second
   local t = os.date("*t") 
   -- define topic name, message is a sequance of "atoms"
-  node:publish{topic='time',msg={t.hour,t.min,t.sec}}
+  node:publish {
+    topic='time', 
+    msg={t.hour, t.min, t.sec}
+  }
 end

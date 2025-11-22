@@ -8,7 +8,7 @@ local master = loss.master()
 -- command line arguments are node names
 if #arg > 0 then
   -- collect nodes
-  for i = 1,#arg do
+  for i = 1, #arg do
     master:add_node(arg[i])
   end
   -- start execution
