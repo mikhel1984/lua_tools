@@ -21,7 +21,7 @@ local d_next = 256
 -- compress
 local w, compressed = '', {}
 local s = file:read(1)
-while s and d_next < 65536 do
+while s do
   local w_s = w..s
   if dict[w_s] then
     w = w_s
@@ -36,12 +36,18 @@ while s and d_next < 65536 do
 end
 compressed[#compressed+1] = dict[w]
 file:close()
--- use 2 bytes for each code
-if d_next >= 65536 then print('COMPRESSION STOPPED') end
 
 -- save result
 local out_file = assert(io.open(fname..'.lzwl', 'wb'))
-for i = 1, #compressed do
-  out_file:write(string.pack('>H', compressed[i]))
+local bs, up = 2, 256*256-1
+local fmt = ">I"..tostring(bs)
+for _, v in ipairs(compressed) do
+  if v >= up then
+    -- update size
+    out_file:write(string.pack(fmt, up))  -- set marker
+    bs, up = bs+1, (up+1)*256-1
+    fmt = ">I"..tostring(bs)
+  end
+  out_file:write(string.pack(fmt, v))
 end
 out_file:close()
