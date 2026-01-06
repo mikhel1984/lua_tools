@@ -39,7 +39,7 @@ file:close()
 
 -- save result
 local out_file = assert(io.open(fname..'.lzwl', 'wb'))
-local bs, up = 2, 256*256-1
+local bs, up = 1, 256-1
 local fmt = ">I"..tostring(bs)
 for _, v in ipairs(compressed) do
   if v >= up then

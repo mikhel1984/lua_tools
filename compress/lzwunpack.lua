@@ -20,7 +20,7 @@ local dict = {}
 for i = 0, 255 do dict[i] = string.char(i) end
 
 -- decompress
-local bs, up = 2, 256*256-1
+local bs, up = 1, 256-1
 local fmt = ">I"..tostring(bs)
 local w, decompressed = '', {}
 local n = file:read(bs)
