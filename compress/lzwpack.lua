@@ -39,15 +39,25 @@ file:close()
 
 -- save result
 local out_file = assert(io.open(fname..'.lzwl', 'wb'))
-local bs, up = 1, 256-1
+local Nmax = 25
+local bs, up, cnt = 1, 256-1, Nmax
 local fmt = ">I"..tostring(bs)
 for _, v in ipairs(compressed) do
   if v >= up then
-    -- update size
     out_file:write(string.pack(fmt, up))  -- set marker
-    bs, up = bs+1, (up+1)*256-1
-    fmt = ">I"..tostring(bs)
+    fmt = ">I"..tostring(bs+1)
+    cnt = cnt - 1
   end
   out_file:write(string.pack(fmt, v))
+  if v >= up then
+    if cnt > 0 then
+      -- restore
+      fmt = ">I"..tostring(bs)
+    else
+      -- update size
+      bs, up = bs+1, (up+1)*256-1
+      cnt = Nmax
+    end
+  end
 end
 out_file:close()

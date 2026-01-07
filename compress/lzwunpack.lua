@@ -20,17 +20,17 @@ local dict = {}
 for i = 0, 255 do dict[i] = string.char(i) end
 
 -- decompress
-local bs, up = 1, 256-1
+local Nmax = 25
+local bs, up, cnt = 1, 256-1, Nmax
 local fmt = ">I"..tostring(bs)
 local w, decompressed = '', {}
 local n = file:read(bs)
 while n do
   local c = string.unpack(fmt, n)
   if c == up then
-    -- update size
-    bs, up = bs+1, (up+1)*256-1
-    fmt = ">I"..tostring(bs)
-    n = file:read(bs)
+    cnt = cnt-1
+    n = file:read(bs+1)
+    fmt = ">I"..tostring(bs+1)
     c = string.unpack(fmt, n)
   end
   local entry = dict[c] or w..string.sub(w, 1, 1)
@@ -39,6 +39,17 @@ while n do
     dict[#dict+1] = w..string.sub(entry, 1, 1)
   end
   w = entry
+  if c >= up then
+    if cnt > 0 then
+      -- restore
+      fmt = ">I"..tostring(bs)
+    else
+      -- update size
+      bs, up = bs+1, (up+1)*256-1
+      cnt = Nmax
+    end
+    --print(c, up, cnt, fmt, bs)
+  end
   -- next
   n = file:read(bs)
 end
